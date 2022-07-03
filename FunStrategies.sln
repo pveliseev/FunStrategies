@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.2.32526.322
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FunStrategies", "FunStrategies\FunStrategies.csproj", "{1619665B-7D12-454F-B4D2-093CF61E23AD}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1619665B-7D12-454F-B4D2-093CF61E23AD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1619665B-7D12-454F-B4D2-093CF61E23AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1619665B-7D12-454F-B4D2-093CF61E23AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1619665B-7D12-454F-B4D2-093CF61E23AD}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {251FF85C-D4CA-4A26-8487-E59BE0F4644F}
+	EndGlobalSection
+EndGlobal

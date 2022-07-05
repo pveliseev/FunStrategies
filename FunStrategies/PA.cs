@@ -15,7 +15,10 @@ namespace FunStrategies
 {
     public class PA : IExternalScript
     {
-        //private const double BALANCE = 100.0;
+        private const double BALANCE = 100.0;
+        // параметры для оптимизатора
+        public IntOptimProperty StartHour = new(0, 0, 12, 1);
+        public IntOptimProperty EndHour = new(23, 12, 23, 1);
 
         public void Execute(IContext ctx, ISecurity sec)
         {
@@ -35,6 +38,10 @@ namespace FunStrategies
             var closePosition = ctx.GetData("ClosePosition", Array.Empty<string>(), makerClosePosition);
             var closeComparison = ctx.GetData("CloseComparison", Array.Empty<string>(), () => CalcCloseComparison(bars));
 
+            // для фильтра сделок по времени
+            var timeStart = new TimeSpan(StartHour, 0, 0);
+            var timeEnd = new TimeSpan(EndHour, 59, 59);
+
             //**********************************************************************
             // торговый цикл
             var barsCount = sec.Bars.Count;
@@ -42,16 +49,55 @@ namespace FunStrategies
             {
                 barsCount--;
             }
+
+            double weightLong = 0.0;
+            double deadPrice = 1000000.0;
+            double close = 0.0;
+            double high = 0.0;
+
+            //принцип побарный анализ для входа в сделку и побарный анализ во время сделки для принятия решения о закрытии
+
             for (int i = ctx.TradeFromBar; i < barsCount; i++)
             {
+                var longPos = sec.Positions.GetLastActiveForSignal("LE", i);
+
                 // торговые сигналы
+                if (barChange[i] > 0.7 && closeComparison[i] == 1 && weightLong < 2.9 && longPos == null)
+                {
+                    weightLong += 3.0;
+                    close = bars[i].Close;
+                    high = bars[i].High;
+                    deadPrice = bars[i].High - 2 * ((bars[i].High - bars[i].Low) / 3);
+                    continue;
+                }
+                if (bars[i].Close < close && bars[i].Close > deadPrice)
+                {
+                    weightLong += 0.1;
+                }
+                else
+                {
+                    weightLong = 0.0;
+                    close = 0.0;
+                    high = 0.0;
+                    deadPrice = 1000000.0;
+                }
 
-
-                // фильтры                
-
+                // фильтры              
+                var filterTime = bars[i].Date.TimeOfDay >= timeStart && bars[i].Date.TimeOfDay <= timeEnd;
 
                 // работа с позициями. (Фиктивное исполнение заявок работает только с заявками "По рынку")
-
+                if (longPos == null)
+                {
+                    if (weightLong >= 3.2 && filterTime)
+                    {
+                        sec.Positions.BuyIfGreater(i + 1, sec.RoundShares(BALANCE / high), high, "LE");
+                    }
+                }
+                else
+                {
+                    longPos.CloseAtStop(i + 0, longPos.EntryPrice * 0.99, "StopLX");
+                    longPos.CloseAtProfit(i + 0, longPos.EntryPrice * 1.01, "ProfitLX");
+                }
             }
             //**********************************************************************
 
@@ -78,7 +124,7 @@ namespace FunStrategies
             paneThree.AddList("CloseComparison", closeComparison, ListStyles.HISTOHRAM, ScriptColors.Gold, LineStyles.SOLID, PaneSides.RIGHT);
         }
 
-
+        #region вспомогательные методы
         private double CalcBarChange(IDataBar bar)
         {
             double change = (bar.Close - bar.Open) / bar.Open * 100.0;
@@ -107,5 +153,6 @@ namespace FunStrategies
 
             return list.ToList();
         }
+        #endregion
     }
 }

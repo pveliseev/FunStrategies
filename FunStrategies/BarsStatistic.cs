@@ -11,6 +11,7 @@ using TSLab.Script.Helpers;
 using TSLab.Script.Control;
 using System.Diagnostics;
 using MathNet.Numerics.Statistics;
+using MathNet.Numerics.LinearRegression;
 
 namespace FunStrategies
 {
@@ -26,9 +27,11 @@ namespace FunStrategies
 
             var closes1 = sec1.ClosePrices.ToArray();
             var closes2 = sec2.ClosePrices.ToArray();
-            int period = 200;
+            int period = 48;
             var barsCount = sec1.Bars.Count;
             var cc = new double[barsCount];
+            var simpRegr = new double[barsCount];
+
             for (int i = period - 1; i < barsCount; i++)
             {
                 double[] partA = new double[period];
@@ -37,6 +40,9 @@ namespace FunStrategies
                 Array.Copy(closes1, i - period + 1, partA, 0, period);
                 Array.Copy(closes2, i - period + 1, partB, 0, period);
 
+                (double A, double B) = SimpleRegression.Fit(partB, partA);
+
+                simpRegr[i] = A + B * closes2[i];
                 cc[i] = Correlation.Pearson(partA, partB);
             }
 
@@ -65,6 +71,8 @@ namespace FunStrategies
             var ccpane = ctx.CreateGraphPane("cc", "cc", false);
             var rangePane = ctx.CreateGraphPane("Range", "BarsRangeProcent", false);
             var volPane = ctx.CreateGraphPane("Volume", "Volume", false);
+
+            ctx.First.AddList("newww", simpRegr, ListStyles.LINE_WO_ZERO, ScriptColors.Magenta, LineStyles.SOLID, PaneSides.RIGHT);
 
             rangePane.AddList("Range", barsRangeProcent, ListStyles.HISTOHRAM, ScriptColors.Gold, LineStyles.SOLID, PaneSides.RIGHT);
             volPane.AddList("Volume", volumes, ListStyles.HISTOHRAM, ScriptColors.BlueViolet, LineStyles.SOLID, PaneSides.RIGHT);

@@ -38,6 +38,13 @@ namespace FunStrategies
             var closePosition = ctx.GetData("ClosePosition", Array.Empty<string>(), makerClosePosition);
             var closeComparison = ctx.GetData("CloseComparison", Array.Empty<string>(), () => CalcCloseComparison(bars));
 
+            var trail = new TrailStop()
+            {
+                StopLoss = 1.0,
+                TrailEnable = 2.0,
+                TrailLoss = 2.0
+            };
+
             // для фильтра сделок по времени
             var timeStart = new TimeSpan(StartHour, 0, 0);
             var timeEnd = new TimeSpan(EndHour, 59, 59);
@@ -95,6 +102,14 @@ namespace FunStrategies
                 }
                 else
                 {
+                    // скидывать часть позиции на первом импульсе
+                    //longPos.ChangeAtProfit(i, longPos.EntryPrice * 1.01, sec.RoundShares(longPos.Shares*0.7), "PE");
+
+
+                    //var stop = trail.Execute(longPos, i);
+                    //longPos.CloseAtStop(i, stop, "LX", "FictitiousClose");
+
+
                     longPos.CloseAtStop(i + 0, longPos.EntryPrice * 0.99, "StopLX");
                     longPos.CloseAtProfit(i + 0, longPos.EntryPrice * 1.01, "ProfitLX");
                 }

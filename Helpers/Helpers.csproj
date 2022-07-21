@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="TSLab.DataSource">
+      <HintPath>C:\Program Files\TSLab\TSLab 2.2\TSLab.DataSource.dll</HintPath>
+    </Reference>
+    <Reference Include="TSLab.Script">
+      <HintPath>C:\Program Files\TSLab\TSLab 2.2\TSLab.Script.dll</HintPath>
+    </Reference>
+    <Reference Include="TSLab.Script.Handlers">
+      <HintPath>C:\Program Files\TSLab\TSLab 2.2\TSLab.Script.Handlers.dll</HintPath>
+    </Reference>
+    <Reference Include="TSLab.Utility">
+      <HintPath>C:\Program Files\TSLab\TSLab 2.2\TSLab.Utility.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>

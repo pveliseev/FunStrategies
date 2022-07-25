@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="MathNet.Numerics" Version="5.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Reference Include="TSLab.DataSource">
       <HintPath>C:\Program Files\TSLab\TSLab 2.2\TSLab.DataSource.dll</HintPath>
     </Reference>

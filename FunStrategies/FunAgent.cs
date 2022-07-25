@@ -10,6 +10,7 @@ using TSLab.Script.Optimization;
 using TSLab.Script.Helpers;
 using TSLab.Script.Control;
 using System.Diagnostics;
+using Helpers;
 
 namespace FunStrategies
 {
@@ -23,9 +24,9 @@ namespace FunStrategies
             var bars = sec.Bars;
 
             //наборы
-            //изменение баров в %, (close[i] - close[i-1])/close[i-1]*100
-            var barChangePercent = ctx.GetData("BarChangePercent", Array.Empty<string>(), () => CalcBarChangePercent(bars));
-
+            var barChangePercent = ctx.GetData("BarChangePercent", Array.Empty<string>(), () => Helpers.Series.BarChange(bars, ValueMode.Percent));
+            var barTemper = ctx.GetData("BarTemper", Array.Empty<string>(), () => Helpers.Series.BarTemper(bars));
+            var frq = ctx.GetData("Frq", Array.Empty<string>(), () => Helpers.Series.FrequencyDistribution(barChangePercent, 7, DataValueMode.Absolute));
 
             //**********************************************************************
             double buyPrice = default;
@@ -40,14 +41,14 @@ namespace FunStrategies
                 var longPos = sec.Positions.GetLastActiveForSignal("LE", i);
 
                 // торговые сигналы
-                bool signal = barChangePercent[i] >= 0.3;
+                bool signal = barTemper[i] == -1;
 
                 // работа с позициями. (Фиктивное исполнение заявок работает только с заявками "По рынку")
                 if (longPos == null)
                 {
                     if (signal)
                     {
-                        buyPrice = bars[i].High - (bars[i].High - bars[i].Low)/3;
+                        buyPrice = bars[i].Close;  //bars[i].High - (bars[i].High - bars[i].Low)/3;
                         sec.Positions.BuyAtPrice(i + 1, 100, buyPrice, "LE");
                     }
                 }
@@ -68,25 +69,13 @@ namespace FunStrategies
 
             // создание панелей
             var paneOne = ctx.CreateGraphPane("BarChangePercent", "BarChangePercent", false);
+            //var paneTwo = ctx.CreateGraphPane("BarTemper", "BarTemper", false);
+            var paneThree = ctx.CreateGraphPane("Frq", "Frq", false);            
 
             // отрисовка графиков
             paneOne.AddList("BarChangePercent", barChangePercent, ListStyles.HISTOHRAM, ScriptColors.BlueViolet, LineStyles.SOLID, PaneSides.RIGHT);
+            //paneTwo.AddList("BarTemper", barTemper, ListStyles.HISTOHRAM, ScriptColors.BlueViolet, LineStyles.SOLID, PaneSides.RIGHT);
+            paneThree.AddList("Frq", frq, ListStyles.HISTOHRAM, ScriptColors.BlueViolet, LineStyles.SOLID, PaneSides.RIGHT);
         }
-
-        #region вспомогательные методы
-        private static IList<double> CalcBarChangePercent(IReadOnlyList<IDataBar> bars)
-        {
-            int barsCount = bars.Count;
-            double[] list = new double[barsCount];
-            for (int i = 1; i < barsCount; i++)
-            {
-                double change = (bars[i].Close - bars[i - 1].Close) / bars[i - 1].Close * 100;
-                list[i] = Math.Round(change, 2);
-            }
-            return list.ToList<double>();
-        }
-
-
-        #endregion
     }
 }

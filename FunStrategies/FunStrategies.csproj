@@ -11,6 +11,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Helpers\Helpers.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Reference Include="TSLab.DataSource">
       <HintPath>C:\Program Files\TSLab\TSLab 2.2\TSLab.DataSource.dll</HintPath>
     </Reference>

@@ -10,6 +10,8 @@ namespace Helpers
 {
     public enum ValueMode { Normal, Percent }
     public enum DataValueMode { None, Absolute }
+
+    public enum CorrelationType { Pearson, Spearman }
     public static class Series
     {
         //изменение бара
@@ -125,7 +127,7 @@ namespace Helpers
 
         public static IList<double> FrequencyDistribution(IEnumerable<double> data, int nbuckets, DataValueMode mode = DataValueMode.None)
         {
-            if(mode == DataValueMode.Absolute)
+            if (mode == DataValueMode.Absolute)
             {
                 data = data.Select(x => Math.Abs(x));
             }
@@ -138,6 +140,43 @@ namespace Helpers
             for (int i = 0; i < length; i++)
             {
                 list[i] = Math.Round((hist.GetBucketOf(data.ElementAt(i)).Count / dataCount * 100), 2);
+            }
+            return list.ToList<double>();
+        }
+
+        //Pearson Correlation
+        public static IList<double> TwoDataCorrelation(CorrelationType type, IEnumerable<double> dataA, IEnumerable<double> dataB, int period)
+        {
+            if (dataA == null)
+                throw new ArgumentNullException(nameof(dataA));
+            if (dataB == null)
+                throw new ArgumentNullException(nameof(dataB));
+            if (period < 1)
+                throw new ArgumentOutOfRangeException(nameof(period));
+            int length = Math.Max(dataA.Count(), dataB.Count());
+            double[] list = new double[length];
+            if (length != 0)
+            {
+                Queue<double> A = new();
+                Queue<double> B = new();
+                //выбор метода расчета корреляции
+                Func<IEnumerable<double>, IEnumerable<double>, double> mode;
+                if (type == CorrelationType.Pearson)
+                    mode = Correlation.Pearson;
+                else
+                    mode = Correlation.Spearman;
+
+                for (int i = 0; i < length; i++)
+                {
+                    A.Enqueue(dataA.ElementAt(i));
+                    B.Enqueue(dataB.ElementAt(i));
+                    if(i >= period)
+                    {
+                        A.Dequeue();
+                        B.Dequeue();
+                    }
+                    list[i] = mode(A, B);
+                }
             }
             return list.ToList<double>();
         }

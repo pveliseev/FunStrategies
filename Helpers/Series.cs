@@ -5,6 +5,7 @@ using TSLab.DataSource;
 using TSLab.Script.Handlers;
 using TSLab.Utils;
 using MathNet.Numerics.Statistics;
+using MathNet.Numerics.LinearRegression;
 
 namespace Helpers
 {
@@ -176,6 +177,46 @@ namespace Helpers
                         B.Dequeue();
                     }
                     list[i] = mode(A, B);
+                }
+            }
+            return list.ToList<double>();
+        }
+
+        //LinearRegression
+        public static IList<double> LinearFitData(IList<double> independent, IList<double> dependent, int period)
+        {
+            if (independent == null)
+                throw new ArgumentNullException(nameof(independent));
+            if (dependent == null)
+                throw new ArgumentNullException(nameof(dependent));
+            if (period < 1)
+                throw new ArgumentOutOfRangeException(nameof(period));
+            int length = Math.Max(independent.Count, dependent.Count);
+            double[] list = new double[length];
+            if (length != 0)
+            {
+                Queue<double> X = new();
+                Queue<double> Y = new();
+
+                for (int i = 0; i < length; i++)
+                {
+                    X.Enqueue(independent[i]);
+                    Y.Enqueue(dependent[i]);
+                    if (i >= period)
+                    {
+                        X.Dequeue();
+                        Y.Dequeue();
+                    }
+
+                    if(i == 0)
+                    {
+                        list[i] = dependent[i];
+                        continue;
+                    }
+
+                    (double A, double B) = SimpleRegression.Fit(X.ToArray<double>(), Y.ToArray<double>());
+
+                    list[i] = A + B * independent[i];
                 }
             }
             return list.ToList<double>();

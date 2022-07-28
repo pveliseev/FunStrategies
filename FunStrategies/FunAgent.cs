@@ -29,8 +29,9 @@ namespace FunStrategies
             //наборы
             var barChangePercent = ctx.GetData("BarChangePercent", Array.Empty<string>(), () => Helpers.Series.BarChange(bars, ValueMode.Percent));
             var barTemper = ctx.GetData("BarTemper", Array.Empty<string>(), () => Helpers.Series.BarTemper(bars));
-            var corr = ctx.GetData("corrP", Array.Empty<string>(), () => Helpers.Series.TwoDataCorrelation(CorrelationType.Pearson, sec1.ClosePrices, sec2.ClosePrices, 48));
+            var corr = ctx.GetData("corrP", Array.Empty<string>(), () => Helpers.Series.TwoDataCorrelation(CorrelationType.Pearson, sec1.ClosePrices, sec2.ClosePrices, 24));
             var frq = ctx.GetData("Frq", Array.Empty<string>(), () => Helpers.Series.FrequencyDistribution(barChangePercent, 7, DataValueMode.Absolute));
+            var lineReg = ctx.GetData("lineReg", Array.Empty<string>(), () => Helpers.Series.LinearFitData(sec2.ClosePrices, sec1.ClosePrices, 24));
 
             //**********************************************************************
             double buyPrice = default;
@@ -77,17 +78,17 @@ namespace FunStrategies
             }
 
             // создание панелей
-            //var paneOne = ctx.CreateGraphPane("BarChangePercent", "BarChangePercent", false);
+            var paneOne = ctx.CreateGraphPane("BarChangePercent", "BarChangePercent", false);
             //var paneTwo = ctx.CreateGraphPane("BarTemper", "BarTemper", false);
             //var paneThree = ctx.CreateGraphPane("Frq", "Frq", false);
             var paneFour = ctx.CreateGraphPane("corrP", $"Corr ({sec1.Symbol} vs {sec2.Symbol})", false);
 
             // отрисовка графиков
-            //paneOne.AddList("BarChangePercent", barChangePercent, ListStyles.HISTOHRAM, ScriptColors.BlueViolet, LineStyles.SOLID, PaneSides.RIGHT);
+            paneOne.AddList("BarChangePercent", barChangePercent, ListStyles.HISTOHRAM, ScriptColors.BlueViolet, LineStyles.SOLID, PaneSides.RIGHT);
             //paneTwo.AddList("BarTemper", barTemper, ListStyles.HISTOHRAM, ScriptColors.BlueViolet, LineStyles.SOLID, PaneSides.RIGHT);
             //paneThree.AddList("Frq", frq, ListStyles.HISTOHRAM, ScriptColors.BlueViolet, LineStyles.SOLID, PaneSides.RIGHT);
             paneFour.AddList("CorrP", corr, ListStyles.HISTOHRAM, ScriptColors.BlueViolet, LineStyles.SOLID, PaneSides.RIGHT);
-
+            ctx.First.AddList($"Fit to {sec2.Symbol}", lineReg, ListStyles.LINE_WO_ZERO, ScriptColors.Magenta, LineStyles.SOLID, PaneSides.RIGHT);
 
         }
     }

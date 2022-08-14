@@ -16,6 +16,8 @@ namespace FunStrategies
 {
     public class FunAgent : IExternalScript2
     {
+        //private MessageHandler message = new ();
+
         public void Execute(IContext ctx, ISecurity sec1, ISecurity sec2)
         {
             // замер времени работы скрипта: старт
@@ -24,14 +26,20 @@ namespace FunStrategies
             // расчет коммисии на бинансе за сделку в одну сторону: мин 0,0002 макс 0,0004
             sec1.Commission = (pos, price, shares, isEntry, isPart) => price * shares * 0.0004;
 
+            //
+            
+
             var bars = sec1.Bars;
 
             //наборы
             var barChangePercent = ctx.GetData("BarChangePercent", Array.Empty<string>(), () => Helpers.Series.BarChange(bars, ValueMode.Percent));
             var barTemper = ctx.GetData("BarTemper", Array.Empty<string>(), () => Helpers.Series.BarTemper(bars));
-            var corr = ctx.GetData("corrP", Array.Empty<string>(), () => Helpers.Series.TwoDataCorrelation(CorrelationType.Pearson, sec1.ClosePrices, sec2.ClosePrices, 24));
-            var frq = ctx.GetData("Frq", Array.Empty<string>(), () => Helpers.Series.FrequencyDistribution(barChangePercent, 7, DataValueMode.Absolute));
+            var corr = ctx.GetData("corrP", Array.Empty<string>(), () => Helpers.Series.TwoDataCorrelation(CorrelationType.Pearson, sec1.ClosePrices, sec2.ClosePrices, 48));
+            var frq = ctx.GetData("Frq", Array.Empty<string>(), () => Helpers.Series.FrequencyDistribution(barChangePercent, 10, DataValueMode.Absolute));
             var lineReg = ctx.GetData("lineReg", Array.Empty<string>(), () => Helpers.Series.LinearFitData(sec2.ClosePrices, sec1.ClosePrices, 24));
+            //var minimus = ctx.GetData("MINI", Array.Empty<string>(), () => Helpers.Series.Extremum(bars).Min);
+            //var maximus = ctx.GetData("MAXI", Array.Empty<string>(), () => Helpers.Series.Extremum(bars).Max);
+            var delta = ctx.GetData("delta", Array.Empty<string>(), () => TSLab.Script.Helpers.Series.Sub(sec1.ClosePrices, lineReg));
 
             //**********************************************************************
             double buyPrice = default;
@@ -68,7 +76,7 @@ namespace FunStrategies
             // пишем в лог время расчета скрипта только в режиме лабаратории
             if (!ctx.Runtime.IsAgentMode)
             {
-                ctx.Log($"Время расчета скрипта: {sw.Elapsed}", MessageType.Info, true);
+                //ctx.Log($"Время расчета скрипта: {sw.Elapsed}", MessageType.Info, true);
             }
 
             // если в режиме оптимизации то не выводим данные на график
@@ -78,18 +86,21 @@ namespace FunStrategies
             }
 
             // создание панелей
-            var paneOne = ctx.CreateGraphPane("BarChangePercent", "BarChangePercent", false);
+            //var paneOne = ctx.CreateGraphPane("BarChangePercent", "BarChangePercent", false);
             //var paneTwo = ctx.CreateGraphPane("BarTemper", "BarTemper", false);
             //var paneThree = ctx.CreateGraphPane("Frq", "Frq", false);
-            var paneFour = ctx.CreateGraphPane("corrP", $"Corr ({sec1.Symbol} vs {sec2.Symbol})", false);
+            //var paneFour = ctx.CreateGraphPane("corrP", $"Corr ({sec1.Symbol} vs {sec2.Symbol})", false);
+            var paneFive = ctx.CreateGraphPane("Delta", "Delta", false);
 
             // отрисовка графиков
-            paneOne.AddList("BarChangePercent", barChangePercent, ListStyles.HISTOHRAM, ScriptColors.BlueViolet, LineStyles.SOLID, PaneSides.RIGHT);
+            //paneOne.AddList("BarChangePercent", barChangePercent, ListStyles.HISTOHRAM, ScriptColors.BlueViolet, LineStyles.SOLID, PaneSides.RIGHT);
             //paneTwo.AddList("BarTemper", barTemper, ListStyles.HISTOHRAM, ScriptColors.BlueViolet, LineStyles.SOLID, PaneSides.RIGHT);
             //paneThree.AddList("Frq", frq, ListStyles.HISTOHRAM, ScriptColors.BlueViolet, LineStyles.SOLID, PaneSides.RIGHT);
-            paneFour.AddList("CorrP", corr, ListStyles.HISTOHRAM, ScriptColors.BlueViolet, LineStyles.SOLID, PaneSides.RIGHT);
+            //paneFour.AddList("CorrP", corr, ListStyles.HISTOHRAM, ScriptColors.BlueViolet, LineStyles.SOLID, PaneSides.RIGHT);
             ctx.First.AddList($"Fit to {sec2.Symbol}", lineReg, ListStyles.LINE_WO_ZERO, ScriptColors.Magenta, LineStyles.SOLID, PaneSides.RIGHT);
-
+            paneFive.AddList("delta", delta, ListStyles.HISTOHRAM, ScriptColors.BlueViolet, LineStyles.SOLID, PaneSides.RIGHT);
+            //ctx.First.AddList("MINI", minimus, ListStyles.LINE_WO_ZERO, ScriptColors.Yellow, LineStyles.SOLID, PaneSides.RIGHT);
+            //ctx.First.AddList("MAXI", maximus, ListStyles.LINE_WO_ZERO, ScriptColors.Yellow, LineStyles.SOLID, PaneSides.RIGHT);
         }
     }
 }
